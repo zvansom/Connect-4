@@ -1,23 +1,26 @@
 const NUM_COLS = 7;
 const NUM_ROWS = 6;
-const gameboard = document.getElementById('gameboard');
-const scoreboard = document.getElementById('scoreboard');
+const gameBoard = document.getElementById('gameboard');
+const scoreBoard = document.getElementById('scoreboard');
 
 let board;
 
 let sbData = {
-  playerOneScore: 0,
-  playerTwoScore: 0,
-  activePlayer: 0
+  activePlayer: 0,
+  singlePlayer: false
 }
 
+document.addEventListener('DOMContentLoaded', function() {
 function startGame() {
+  clearScoreboard();
+  renderStartingBoard();
+  addColumnListeners();
+  renderActivePlayer();
   if(this.id === 'player1') {
-    alert("Feature currently unavailable.  Please find a friend and come back.");
-  } else {
-    clearScoreboard();
-    addColumnListeners();
-    renderActivePlayer();
+    sbData.singlePlayer = true;
+    if(sbData.activePlayer === 2) {
+      cpuMoves();
+    }
   }
 }
 
@@ -26,8 +29,8 @@ function setActivePlayer() {
 }
 
 function clearScoreboard() {
-  while (scoreboard.firstChild) {
-    scoreboard.removeChild(scoreboard.firstChild);
+  while (scoreBoard.firstChild) {
+    scoreBoard.removeChild(scoreBoard.firstChild);
   }
 }
 
@@ -39,22 +42,37 @@ function addColumnListeners() {
 function renderActivePlayer() {
   const activePlayer = document.createElement('h2');
   activePlayer.setAttribute('id', 'active-player');
-  activePlayer.innerText = "Player " + sbData.activePlayer + " goes first!";
-  scoreboard.appendChild(activePlayer);
+  activePlayer.innerText = getPlayer() + " goes first!";
+  scoreBoard.appendChild(activePlayer);
+}
+
+function getPlayer() {
+  if(sbData.activePlayer === 1) {
+    return "Player 1";
+  } else if(sbData.singlePlayer === true) {
+    return "CPU";
+  } else {
+    return "Player 2";
+  }
 }
 
 function handleClick() {
   const activeColumn = parseInt(this.getAttribute('id'));
-
-  // Check if top cell in column is occupied.
-  if (board[0][activeColumn] === 0) {
+  if(checkForValidMove(activeColumn)){
     var lowestAvailableRow = fetchLowestAvailableRow(activeColumn);
     board[lowestAvailableRow][activeColumn] = sbData.activePlayer;
-
     fillCell([lowestAvailableRow, activeColumn]);
   } else {
     alert("That column is full. Choose a different one.");
   }
+}
+
+function checkForValidMove(column) {
+  // Check if top cell in column is occupied.
+  if (board[0][column] === 0) {
+    return true;
+  }
+  return false;
 }
 
 function fetchLowestAvailableRow(columnIndex) {
@@ -73,12 +91,11 @@ function fillCell(coordinate) {
   if(sbData.activePlayer === 1) {
     currentColor = 'red';
   } else {
-    currentColor = 'black';
+    currentColor = 'yellow';
   }
 
   document.querySelector('div.cell[data-coordinate="['+coordinate[0]+', '+coordinate[1]+']"]').style = "background-color: " + currentColor;
 
-  console.log(board);
   if(checkForWin()){
     removeColumnListeners();
     gameOver();
@@ -140,14 +157,14 @@ function gameOver() {
   const gameOverMessage = document.createElement('h2');
   gameOverMessage.setAttribute('id', 'game-over');
   gameOverMessage.innerText = "Player " + sbData.activePlayer + " has won!";
-  scoreboard.appendChild(gameOverMessage);
+  scoreBoard.appendChild(gameOverMessage);
 
   const playAgainButton = document.createElement('button');
   playAgainButton.setAttribute('id', 'play-again');
   playAgainButton.setAttribute('class', 'menuButton');
   playAgainButton.addEventListener('click', renderMenu);
   playAgainButton.textContent = 'Play Again!';
-  scoreboard.appendChild(playAgainButton);
+  scoreBoard.appendChild(playAgainButton);
 }
 
 function switchPlayer() {
@@ -155,27 +172,38 @@ function switchPlayer() {
   updateActivePlayer();
 }
 
+function cpuMoves() {
+  let cpuMove = Math.floor(Math.random() * NUM_COLS);
+  if(checkForValidMove(cpuMove)){
+    document.getElementById(cpuMove).click();
+  } else {
+    cpuMoves();
+  }
+}
+
 function updateActivePlayer() {
-  document.getElementById('active-player').textContent = "Player " + sbData.activePlayer + "'s move";
+  document.getElementById('active-player').textContent = getPlayer() + "'s move";
+  if(sbData.singlePlayer === true && sbData.activePlayer === 2) {
+    cpuMoves();
+  }
 }
 
 function renderMenu() {
   clearScoreboard();
-  const numPlayerMessage = document.createElement('h4');
+  const numPlayerMessage = document.createElement('h2');
   numPlayerMessage.textContent = "How many players?";
-  scoreboard.appendChild(numPlayerMessage);
+  scoreBoard.appendChild(numPlayerMessage);
 
   for (let playerNum = 1; playerNum <= 2; playerNum++) {
     const currentPlayer = document.createElement('button');
     currentPlayer.setAttribute('id', 'player' + playerNum);
     currentPlayer.setAttribute('class', 'menuButton');
     currentPlayer.addEventListener('click', startGame);
-    currentPlayer.textContent = playerNum + "Player";
-    scoreboard.appendChild(currentPlayer);
+    currentPlayer.textContent = playerNum + " Player";
+    scoreBoard.appendChild(currentPlayer);
   }
 
-  renderStartingBoard();
-  initializeBoardData();
+  initializeStartingData();
   setActivePlayer();
 }
 
@@ -186,7 +214,7 @@ function renderStartingBoard() {
     let currColumn = document.createElement('div');
     currColumn.setAttribute('class', 'column');
     currColumn.setAttribute('id', col);
-    gameboard.appendChild(currColumn);
+    gameBoard.appendChild(currColumn);
 
     //  Generate cell elements for current column
     for (let cell = 0; cell < NUM_ROWS; cell++) {
@@ -200,12 +228,12 @@ function renderStartingBoard() {
 }
 
 function clearGameboard() {
-  while (gameboard.firstChild) {
-    gameboard.removeChild(gameboard.firstChild);
+  while (gameBoard.firstChild) {
+    gameBoard.removeChild(gameBoard.firstChild);
   }
 }
 
-function initializeBoardData() {
+function initializeStartingData() {
   board = [];
   for (let row = 0; row < NUM_ROWS; row++) {
     let currentRow = [];
@@ -214,6 +242,13 @@ function initializeBoardData() {
     }
     board.push(currentRow);
   }
+
+  sbData = {
+    activePlayer: 0,
+    singlePlayer: false
+  }
 }
 
 renderMenu();
+
+});
