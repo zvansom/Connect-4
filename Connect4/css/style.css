@@ -1,0 +1,38 @@
+body {
+  margin-top: 20px;
+  text-align: center;
+}
+
+h1 {
+  font-size: 50px;
+}
+
+.cell {
+  background-color: white;
+  border-radius: 100%;
+  display: inline-block;
+  height: 50px;
+  margin: 10px;
+  width: 50px;
+}
+
+.column {
+  background-color: blue;
+  float: left;
+  width: 14%;
+}
+
+#gameboard {
+  /* background-color: gray; */
+  /* height: 100%; */
+  margin: 50px auto;
+  width: 50%;
+}
+
+#scoreboard {
+  background-color: yellow;
+  border: 3px solid black;
+  /* height: 0px; */
+  margin: 0 auto;
+  width: 50%;
+}
