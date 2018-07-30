@@ -3,14 +3,8 @@ const NUM_ROWS = 6;
 const gameBoard = document.getElementById('gameboard');
 const scoreBoard = document.getElementById('scoreboard');
 
-let board;
+let board, sbData;
 
-let sbData = {
-  activePlayer: 0,
-  singlePlayer: false
-}
-
-document.addEventListener('DOMContentLoaded', function() {
 function startGame() {
   clearScoreboard();
   renderStartingBoard();
@@ -61,6 +55,8 @@ function handleClick() {
   if(checkForValidMove(activeColumn)){
     var lowestAvailableRow = fetchLowestAvailableRow(activeColumn);
     board[lowestAvailableRow][activeColumn] = sbData.activePlayer;
+    sbData.movesRemaining--;
+    console.log(board);
     fillCell([lowestAvailableRow, activeColumn]);
   } else {
     alert("That column is full. Choose a different one.");
@@ -69,7 +65,7 @@ function handleClick() {
 
 function checkForValidMove(column) {
   // Check if top cell in column is occupied.
-  if (board[0][column] === 0) {
+  if(board[0][column] === 0) {
     return true;
   }
   return false;
@@ -97,7 +93,6 @@ function fillCell(coordinate) {
   document.querySelector('div.cell[data-coordinate="['+coordinate[0]+', '+coordinate[1]+']"]').style = "background-color: " + currentColor;
 
   if(checkForWin()){
-    removeColumnListeners();
     gameOver();
   } else {
     switchPlayer();
@@ -153,6 +148,7 @@ function removeColumnListeners() {
 }
 
 function gameOver() {
+  removeColumnListeners();
   clearScoreboard();
   const gameOverMessage = document.createElement('h2');
   gameOverMessage.setAttribute('id', 'game-over');
@@ -168,8 +164,18 @@ function gameOver() {
 }
 
 function switchPlayer() {
+  if(sbData.movesRemaining === 0){
+    gameOver();
+    renderTieGame();
+  } else {
   sbData.activePlayer === 1 ? sbData.activePlayer = 2 : sbData.activePlayer = 1;
   updateActivePlayer();
+  }
+}
+
+function renderTieGame() {
+  const message = document.getElementById('game-over');
+  message.textContent = "A tie game!?!  How'd you manage that?";
 }
 
 function cpuMoves() {
@@ -224,7 +230,7 @@ function renderStartingBoard() {
       document.getElementById(col).appendChild(currCell);
     }
   }
-  initializeBoardData();
+  initializeStartingData();
 }
 
 function clearGameboard() {
@@ -242,13 +248,13 @@ function initializeStartingData() {
     }
     board.push(currentRow);
   }
+  console.log(board);
 
   sbData = {
-    activePlayer: 0,
-    singlePlayer: false
-  }
+    activePlayer: Math.round(Math.random()) + 1,
+    singlePlayer: false,
+    movesRemaining: NUM_COLS * NUM_ROWS
+  };
 }
 
 renderMenu();
-
-});
